@@ -25,7 +25,7 @@ app.post('/api/exercise/new-user', (req, res) => {
   let id = uuid.v1();
   let user = {_id: id, username: req.body.username, log: []}
   users.push(user);
-  res.json(user);
+  res.json({_id: user._id, username: user.username });
 });
 
 app.get('/api/exercise/users', (req, res) => {
@@ -39,8 +39,9 @@ app.post('/api/exercise/add', (req, res) => {
     res.sendStatus(404);
     return;
   }
+  let date = req.body.date == "" || req.body.date == undefined ? new Date() : new Date(req.body.date);
   let log = {
-    date: Date(req.body.date) ?? new Date(),
+    date: date,
     description: req.body.description,
     duration: req.body.duration
   };
@@ -55,12 +56,21 @@ app.get('/api/exercise/log', (req, res) => {
     return;
   }
   let user = users[userIndex];
-  let logs = user.log; // TODO: Filter: from, to, limit
+  var logs = user.log;
+  if(req.query.from) {
+    logs = logs.filter(log => log.date >= new Date(req.query.from));
+  }
+  if(req.query.to) {
+    logs = logs.filter(log => log.date <= new Date(req.query.to));
+  }
+  if(req.query.limit) {
+    logs = logs.slice(0, req.query.limit);
+  }
   let result = {
     _id: user._id,
     username: user.username,
-    count: log.length,
-    log: user.log
+    count: logs.length,
+    log: logs
   };
   res.json(result);
 });
