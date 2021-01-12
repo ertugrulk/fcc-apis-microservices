@@ -3,11 +3,11 @@ const User = require("../models/user");
 const Exercise = require("../models/excersize");
 
 exports.post_exercise = function(req, res) {
-  User.findOne( { _id: req.body.userId} , function (err, queryResult) {
+  User.findOne( { _id: req.body.userId} , function (err, userQueryResult) {
         if(err){
             return next(err);
         }
-        if(queryResult) {
+        if(userQueryResult) {
           let date = req.body.date == "" || req.body.date == undefined ? new Date() : new Date(req.body.date);
           let exerciseLog = new Exercise({
             user: req.body.userId,
@@ -17,7 +17,14 @@ exports.post_exercise = function(req, res) {
           });
           exerciseLog.save(function(err) {
             // TODO: Error handling
-            res.json(exerciseLog);  
+            let result = {
+              _id: userQueryResult._id,
+              username: userQueryResult.username,
+              date: exerciseLog.date.toDateString(),
+              description: exerciseLog.description,
+              duration: exerciseLog.duration
+            };
+            res.json(result);  
           });
         }
     });
